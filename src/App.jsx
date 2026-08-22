@@ -1,7 +1,8 @@
+import AppRoutes from "./routes/AppRoutes"
 
 const App = () => {
   return (
-    <div className='font-semibold text-red-600'>App</div>
+<AppRoutes/>
   )
 }
 
