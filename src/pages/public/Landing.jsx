@@ -4,6 +4,13 @@ import Navbar from "../../components/common/Navbar";
 import Button from "../../components/common/Button";
 export default function Landing() {
   const navigate=useNavigate();
+  const handleReportIssue = () => {
+  navigate("/citizen/login");
+};
+
+const handleSeeMap = () => {
+  navigate("/explore-publicmap");
+};
   const login=()=>{
     navigate("/login")
   }
@@ -53,7 +60,7 @@ export default function Landing() {
 
               <div className="flex flex-col sm:flex-row gap-4 mt-4">
 
-                <button className="bg-[#1e3a8a] text-white rounded-lg px-8 py-4 text-[14px]  leading-5 tracking-widerfont-semibold shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-lg transition-shadow flex items-center justify-center gap-2">
+                <button onClick={handleReportIssue} className="bg-[#1e3a8a] text-white rounded-lg px-8 py-4 text-[14px]  leading-5 tracking-widerfont-semibold shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-lg transition-shadow flex items-center justify-center gap-2">
                   Report an Issue
 
                   <span className="material-symbols-outlined text-sm">
@@ -61,7 +68,7 @@ export default function Landing() {
                   </span>
                 </button>
 
-                <button className="bg-white border border-[#c5c5d3] text-[#0d1c2e] rounded-lg px-8 py-4 text-[14px]  leading-5 tracking-widerfont-semibold hover:bg-[#eff4ff] transition-colors flex items-center justify-center gap-2">
+                <button onClick={handleSeeMap} className="bg-white border border-[#c5c5d3] text-[#0d1c2e] rounded-lg px-8 py-4 text-[14px]  leading-5 tracking-widerfont-semibold hover:bg-[#eff4ff] transition-colors flex items-center justify-center gap-2">
                   <span className="material-symbols-outlined text-sm">
                     map
                   </span>
