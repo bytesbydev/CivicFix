@@ -1,11 +1,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  CircleMarker,
   MapContainer,
+  Marker,
   Popup,
   TileLayer,
 } from "react-leaflet";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 import Navbar from "../../components/common/Navbar";
@@ -14,6 +15,60 @@ import Footer from "../../components/common/Footer";
 
 const DEHRADUN_CENTER = [30.3165, 78.0322];
 
+const createIssuePin = (status, selected = false) => {
+  const color = getStatusColor(status);
+  const size = selected ? 45 : 40;
+
+  return L.divIcon({
+    className: "",
+    html: `
+      <div style="
+        position: relative;
+        width: ${size}px;
+        height: ${size}px;
+        filter: drop-shadow(0 2px 3px rgba(0,0,0,0.35));
+      ">
+        <div style="
+          position: absolute;
+          top: 2px;
+          left: 4px;
+          width: ${size - 8}px;
+          height: ${size - 8}px;
+          background: ${color};
+          border: 2px solid white;
+          border-radius: 50% 50% 50% 0;
+          transform: rotate(-45deg);
+          box-sizing: border-box;
+        "></div>
+
+        <div style="
+          position: absolute;
+          top: 11px;
+          left: 50%;
+          width: 10px;
+          height: 10px;
+          background: white;
+          border-radius: 50%;
+          transform: translateX(-50%);
+        "></div>
+
+        ${
+          selected
+            ? `<div style="
+                position: absolute;
+                inset: 0;
+
+                opacity: 0.8;
+              "></div>`
+            : ""
+        }
+      </div>
+    `,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
+    popupAnchor: [0, -size + 3],
+  });
+};
 const STATUS_COLORS = {
   "Pending Review": "#f59e0b",
   "In Progress": "#2563eb",
@@ -297,51 +352,33 @@ export default function ExploreMap() {
               />
 
               {filteredIssues.map((issue) => (
-                <CircleMarker
-                  key={issue.id}
-                  center={[
-                    Number(issue.latitude),
-                    Number(issue.longitude),
-                  ]}
-                  radius={selectedIssue?.id === issue.id ? 11 : 8}
-                  pathOptions={{
-                    color:
-                      selectedIssue?.id === issue.id
-                        ? "#00236f"
-                        : getStatusColor(issue.status),
-                    fillColor: getStatusColor(issue.status),
-                    fillOpacity: 0.85,
-                    weight: selectedIssue?.id === issue.id ? 4 : 2,
-                  }}
-                  eventHandlers={{
-                    click: () => setSelectedIssue(issue),
-                  }}
-                >
-                  <Popup>
-                    <div className="min-w-40 font-['Inter']">
-                      <p className="font-bold">
-                        {issue.title || "Civic Issue"}
-                      </p>
-                      <p className="mt-1 text-sm">
-                        Report #{issue.issue_number}
-                      </p>
-                      <p className="mt-1 text-sm">{issue.category}</p>
-                      <p className="mt-1 text-sm">{issue.status}</p>
-
-                      {issue.address && (
-                        <p className="mt-1 text-xs">{issue.address}</p>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={() => setSelectedIssue(issue)}
-                        className="mt-2 text-sm font-semibold text-blue-800"
-                      >
-                        View details
-                      </button>
-                    </div>
-                  </Popup>
-                </CircleMarker>
+                <Marker
+  key={issue.id}
+  position={[
+    Number(issue.latitude),
+    Number(issue.longitude),
+  ]}
+  icon={createIssuePin(
+    issue.status,
+    selectedIssue?.id === issue.id
+  )}
+  eventHandlers={{
+    click: () => setSelectedIssue(issue),
+  }}
+>
+  <Popup>
+    <div className="min-w-40">
+      <p className="font-bold">{issue.title}</p>
+      <p className="mt-1 text-sm">
+        #CF-{issue.issue_number}
+      </p>
+      <p className="mt-1 text-sm">{issue.status}</p>
+      {issue.address && (
+        <p className="mt-1 text-sm">{issue.address}</p>
+      )}
+    </div>
+  </Popup>
+</Marker>
               ))}
             </MapContainer>
           )}
