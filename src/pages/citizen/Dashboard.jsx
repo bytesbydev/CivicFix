@@ -162,25 +162,6 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-slate-50 font-['Inter'] text-slate-900">
-      {/* Mobile Header */}
-      <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur-md md:hidden">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-900 text-white">
-            <span className="material-symbols-outlined">
-              account_balance
-            </span>
-          </div>
-
-          <span className="text-xl font-bold text-blue-900">
-            CivicFix
-          </span>
-        </div>
-
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-900 text-sm font-bold text-white">
-          {(profile?.full_name || "C").charAt(0).toUpperCase()}
-        </div>
-      </header>
-
       <Navbar />
 
       <main className="mx-auto max-w-350 space-y-6 px-4 py-6 md:px-8 md:py-8">
@@ -200,33 +181,6 @@ const Dashboard = () => {
             </button>
           </div>
         )}
-
-        {/* City Information Banner */}
-        <section className="flex flex-col justify-between gap-3 rounded-2xl bg-linear-to-r from-blue-900 via-blue-800 to-slate-900 p-5 text-white md:flex-row md:items-center">
-          <div>
-            <p className="text-sm text-blue-100">
-              CivicFix · Dehradun
-            </p>
-            <h2 className="mt-1 text-xl font-bold">
-              Your city. Your contribution.
-            </h2>
-            <p className="mt-1 text-sm text-blue-100">
-              Every report helps municipal authorities identify
-              problems and take action.
-            </p>
-          </div>
-
-          <button
-            onClick={reportIssue}
-            className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold text-blue-900 transition hover:bg-blue-50"
-          >
-            <span className="material-symbols-outlined">
-              add_circle
-            </span>
-            Report an Issue
-          </button>
-        </section>
-
         {/* Welcome Section */}
         <section className="flex flex-col justify-between gap-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:p-8">
           <div>
