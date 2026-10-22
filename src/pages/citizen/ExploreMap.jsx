@@ -3,12 +3,13 @@ import { useEffect, useState } from "react";
 import Footer from "../../components/common/Footer";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  CircleMarker,
   MapContainer,
+  Marker,
   Popup,
   TileLayer,
   useMap,
 } from "react-leaflet";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 import Navbar from "../../components/common/Navbar";
@@ -22,7 +23,49 @@ const STATUS_COLORS = {
   Resolved: "#059669",
   Rejected: "#dc2626",
 };
+const createIssuePin = (status, selected = false) => {
+  const color = STATUS_COLORS[status] || "#475569";
+  const size = selected ? 52 : 40;
 
+  return L.divIcon({
+    className: "",
+    html: `
+      <div style="
+        position: relative;
+        width: ${size}px;
+        height: ${size}px;
+        filter: drop-shadow(0 2px 3px rgba(0,0,0,0.35));
+      ">
+        <div style="
+          position: absolute;
+          top: 2px;
+          left: 4px;
+          width: ${size - 8}px;
+          height: ${size - 8}px;
+          background: ${color};
+          border: 2px solid white;
+          border-radius: 50% 50% 50% 0;
+          transform: rotate(-45deg);
+          box-sizing: border-box;
+        "></div>
+
+        <div style="
+          position: absolute;
+          top: 11px;
+          left: 50%;
+          width: 10px;
+          height: 10px;
+          background: white;
+          border-radius: 50%;
+          transform: translateX(-50%);
+        "></div>
+      </div>
+    `,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
+    popupAnchor: [0, -size + 3],
+  });
+};
 const formatIssueNumber = (issue) =>
   issue.issue_number != null
     ? `#CF-${issue.issue_number}`
@@ -251,7 +294,7 @@ const ExploreMap = () => {
                 </div>
               </div>
 
-              <div className="relative h-[60vh] min-h-95 w-full">
+              <div className="relative z-0 h-[60vh] min-h-95 w-full">
                 <MapContainer
                   center={
                     selectedIssue
@@ -273,45 +316,37 @@ const ExploreMap = () => {
                   <RecenterMap issue={selectedIssue} />
 
                   {issues.map((issue) => (
-                    <CircleMarker
-                      key={issue.id}
-                      center={[
-                        Number(issue.latitude),
-                        Number(issue.longitude),
-                      ]}
-                      radius={issue.id === selectedIssue?.id ? 11 : 8}
-                      pathOptions={{
-                        color:
-                          STATUS_COLORS[issue.status] || "#475569",
-                        fillColor:
-                          STATUS_COLORS[issue.status] || "#475569",
-                        fillOpacity: 0.85,
-                        weight: issue.id === selectedIssue?.id ? 4 : 2,
-                      }}
-                      eventHandlers={{
-                        click: () => setSelectedIssue(issue),
-                      }}
-                    >
-                      <Popup>
-                        <div className="min-w-40">
-                          <p className="font-bold">
-                            {issue.title}
-                          </p>
-                          <p className="mt-1 text-sm">
-                            {formatIssueNumber(issue)}
-                          </p>
-                          <p className="mt-1 text-sm">
-                            {issue.status}
-                          </p>
-                          {issue.address && (
-                            <p className="mt-1 text-sm">
-                              {issue.address}
-                            </p>
-                          )}
-                        </div>
-                      </Popup>
-                    </CircleMarker>
-                  ))}
+  <Marker
+    key={issue.id}
+    position={[
+      Number(issue.latitude),
+      Number(issue.longitude),
+    ]}
+    icon={createIssuePin(
+      issue.status,
+      issue.id === selectedIssue?.id
+    )}
+    eventHandlers={{
+      click: () => setSelectedIssue(issue),
+    }}
+  >
+    <Popup>
+      <div className="min-w-40">
+        <p className="font-bold">{issue.title}</p>
+
+        <p className="mt-1 text-sm">
+          {formatIssueNumber(issue)}
+        </p>
+
+        <p className="mt-1 text-sm">{issue.status}</p>
+
+        {issue.address && (
+          <p className="mt-1 text-sm">{issue.address}</p>
+        )}
+      </div>
+    </Popup>
+  </Marker>
+))}
                 </MapContainer>
               </div>
 
