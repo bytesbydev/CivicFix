@@ -23,31 +23,43 @@ const createIssueIcon = (status) => {
     status === "In Progress" ? "#d97706" : "#1d4ed8";
 
   return L.divIcon({
-    className: "",
+    className: "google-map-pin",
     html: `
       <div style="
-        width: 34px;
-        height: 34px;
-        background: ${color};
-        border: 3px solid white;
-        border-radius: 50% 50% 50% 0;
-        transform: rotate(-45deg);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        position: relative;
+        width: 40px;
+        height: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
       ">
-        <span style="
-          color: white;
-          font-size: 17px;
-          transform: rotate(45deg);
-          font-weight: bold;
-        ">!</span>
+        <!-- Pin shape -->
+        <div style="
+          position: absolute;
+          width: 32px;
+          height: 32px;
+          top: 2px;
+          background: ${color};
+          border: 2px solid white;
+          border-radius: 50% 50% 50% 0;
+          transform: rotate(-45deg);
+          box-shadow: 0 2px 5px rgba(0,0,0,0.35);
+        "></div>
+
+        <!-- White center -->
+        <div style="
+          position: absolute;
+          top: 11px;
+          width: 10px;
+          height: 10px;
+          background: white;
+          border-radius: 50%;
+        "></div>
       </div>
     `,
-    iconSize: [34, 34],
-    iconAnchor: [17, 34],
-    popupAnchor: [0, -32],
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -38],
   });
 };
 
@@ -273,7 +285,7 @@ const AdminIssuesMap = () => {
               Loading issue locations...
             </div>
           ) : (
-            <div className="relative h-125 w-full md:h-155">
+            <div className="relative z-0 h-125 w-full md:h-155"> 
               <MapContainer
                 center={DEHRADUN_CENTER}
                 zoom={12}
