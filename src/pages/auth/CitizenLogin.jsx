@@ -34,10 +34,10 @@ try {
       <div className="hidden lg:flex lg:w-1/2 relative bg-[#d5e3fc] flex-col justify-between overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage:
-              "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBOl47W8GeO_PQ6AmA71cyPd1TqvStjgxvJiSf0m9X_U89EI3WBn7seGApYM7lZQ2qj3fv_WQh5oHqOo82Efd_WC9nERHfFDGKb75_rpL-OFwC9jJAiRKY1evj07aXStx6OHgPQuq9QiQefrpfMWiCIVgNO7idNlFjzBbBHSwHC5lMoecckm7aBYX24Ul9Pb70axozQe8nECp8rDb_jF1lt3K8qZdZeSkmr-1p8o7QqsvPF0LU9ukmF')",
-          }}
+         style={{
+  backgroundImage:
+    "url('https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=1200&q=85')",
+}}
         >
           <div className="absolute inset-0 bg-linear-to-t from-[#00236f]/80 via-[#00236f]/20 to-transparent" />
         </div>
