@@ -86,7 +86,7 @@ longitude: issueLocation.longitude,
           <button
             type="button"
             aria-label="Go back"
-            onClick={() => window.history.back()}
+            onClick={() => navigate("issue-location", { state: { imageFile, imagePreview } })}
             className="-ml-2 flex items-center justify-center rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
           >
             <span className="material-symbols-outlined text-[20px]">
