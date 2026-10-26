@@ -210,7 +210,7 @@ const IssueLocation = () => {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => navigate("/report")}
+            onClick={() => navigate("/capture-issue", { state: { imageFile, imagePreview } })}
             className="-ml-2 flex items-center justify-center rounded-full p-2 text-[#444651] transition-colors hover:bg-[#eff4ff]"
             aria-label="Go back"
           >
@@ -226,7 +226,7 @@ const IssueLocation = () => {
 
         <button
           type="button"
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/dashboard")}
           className="text-sm font-semibold tracking-wider text-[#444651] transition-colors hover:text-[#00236f]"
         >
           Cancel
@@ -304,7 +304,7 @@ const IssueLocation = () => {
         )}
 
         {/* Interactive map */}
-        <section className="relative z-0 h-[400px] overflow-hidden rounded-xl border border-[#c5c5d3] bg-slate-100 shadow-sm md:h-[500px]">
+        <section className="relative z-0 h-100 overflow-hidden rounded-xl border border-[#c5c5d3] bg-slate-100 shadow-sm md:h-125">
           <MapContainer
             center={DEHRADUN_CENTER}
             zoom={13}
@@ -335,11 +335,11 @@ const IssueLocation = () => {
             )}
           </MapContainer>
 
-          <div className="absolute bottom-4 left-4 z-[1000] rounded-lg bg-white/95 px-3 py-2 text-xs font-medium text-slate-700 shadow">
+          <div className="absolute bottom-4 left-4 z-1000 rounded-lg bg-white/95 px-3 py-2 text-xs font-medium text-slate-700 shadow">
             Click the map to place your pin
           </div>
 
-          <div className="absolute right-3 top-3 z-[1000] flex flex-col gap-2">
+          <div className="absolute right-3 top-3 z-1000 flex flex-col gap-2">
             <button
               type="button"
               onClick={() => setZoom((value) => Math.min(value + 1, 19))}
