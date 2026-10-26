@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Button from "../../components/common/Button";
 
 function CaptureIssue() {
@@ -96,6 +96,11 @@ function CaptureIssue() {
     },
   });
 };
+const handleCancelReport=()=>{
+    sessionStorage.removeItem("civicfix_report_image");
+    navigate("/dashboard");
+  
+}
 
   return (
     <div className="bg-[#f8f9ff] text-[#0d1c2e] antialiased min-h-screen flex flex-col items-center py-10 px-6 md:px-10">
@@ -107,18 +112,17 @@ function CaptureIssue() {
         <header className="flex justify-between items-center w-full">
 
           
-          <Link
-            to="/"
+          <div
             className="text-[#444651] hover:text-[#00236f] transition-colors flex items-center gap-2 group"
           >
-            <span className="material-symbols-outlined text-xl group-hover:-translate-x-1 transition-transform">
+            <button onClick={handleCancelReport} className="material-symbols-outlined text-xl group-hover:-translate-x-1 transition-transform">
               close
-            </span>
+            </button>
 
             <span className="font-semibold text-[14px] leading-5 tracking-wider">
               Cancel Report
             </span>
-          </Link>
+          </div>
 
           
           <div className="flex items-center gap-2">
