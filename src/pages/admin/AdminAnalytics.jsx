@@ -1,21 +1,10 @@
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, lazy, Suspense } from "react";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-} from "recharts";
 import { supabase } from "../../services/supabase";
+
+const Charts = lazy(() => import("./AnalyticsCharts"));
 
 const COLORS = [
   "#1e3a8a",
@@ -33,36 +22,33 @@ const ranges = [
   { label: "All Time", days: 0 },
 ];
 
-
 const MetricCard = ({ label, value, icon, detail }) => (
-    <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm transition hover:shadow-md">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-sm font-medium text-slate-500">
-            {label}
-          </p>
-          <p className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
-            {value}
-          </p>
-        </div>
-
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-900">
-          <span className="material-symbols-outlined">{icon}</span>
-        </div>
+  <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm transition hover:shadow-md">
+    <div className="flex items-start justify-between gap-3">
+      <div>
+        <p className="text-sm font-medium text-slate-500">{label}</p>
+        <p className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+          {value}
+        </p>
       </div>
 
-      <p className="mt-4 text-xs text-slate-500">{detail}</p>
+      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-900">
+        <span className="material-symbols-outlined">{icon}</span>
+      </div>
     </div>
-  );
+
+    <p className="mt-4 text-xs text-slate-500">{detail}</p>
+  </div>
+);
+
 const AdminAnalytics = () => {
   const [issues, setIssues] = useState([]);
   const [timeRange, setTimeRange] = useState(30);
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
 
-  // Fetch issues from Supabase.
-  // Do not synchronously set loading/error before the first await.
   const fetchIssues = useCallback(async () => {
     try {
       const { data, error: fetchError } = await supabase
@@ -83,7 +69,6 @@ const AdminAnalytics = () => {
     }
   }, []);
 
-  // Initial fetch and real-time updates.
   useEffect(() => {
     let active = true;
 
@@ -107,9 +92,7 @@ const AdminAnalytics = () => {
           setError(err.message || "Unable to load analytics.");
         }
       } finally {
-        if (active) {
-          setLoading(false);
-        }
+        if (active) setLoading(false);
       }
     };
 
@@ -120,9 +103,7 @@ const AdminAnalytics = () => {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "issues" },
-        () => {
-          loadIssues();
-        }
+        () => loadIssues()
       )
       .subscribe();
 
@@ -132,40 +113,35 @@ const AdminAnalytics = () => {
     };
   }, []);
 
-  // Retry is called by a user interaction, not directly by an effect.
   const handleRetry = () => {
     setLoading(true);
     fetchIssues();
   };
 
-  // Apply date and category filters.
- const [currentTime, setCurrentTime] = useState(() => Date.now());
+  useEffect(() => {
+    const updateTime = () => setCurrentTime(Date.now());
+    updateTime();
+  }, []);
 
-useEffect(() => {
-  const updateTime = () => setCurrentTime(Date.now());
-  updateTime();
-}, []);
+  const filteredIssues = useMemo(() => {
+    const cutoff =
+      timeRange === 0
+        ? null
+        : currentTime - timeRange * 24 * 60 * 60 * 1000;
 
-const filteredIssues = useMemo(() => {
-  const cutoff =
-    timeRange === 0
-      ? null
-      : currentTime - timeRange * 24 * 60 * 60 * 1000;
+    return issues.filter((issue) => {
+      const matchesDate =
+        cutoff === null ||
+        new Date(issue.created_at).getTime() >= cutoff;
 
-  return issues.filter((issue) => {
-    const matchesDate =
-      cutoff === null ||
-      new Date(issue.created_at).getTime() >= cutoff;
+      const matchesCategory =
+        categoryFilter === "All" ||
+        issue.category === categoryFilter;
 
-    const matchesCategory =
-      categoryFilter === "All" ||
-      issue.category === categoryFilter;
+      return matchesDate && matchesCategory;
+    });
+  }, [issues, timeRange, categoryFilter, currentTime]);
 
-    return matchesDate && matchesCategory;
-  });
-}, [issues, timeRange, categoryFilter, currentTime]);
-
-  // Calculate summary statistics.
   const stats = useMemo(() => {
     const total = filteredIssues.length;
 
@@ -220,7 +196,6 @@ const filteredIssues = useMemo(() => {
     };
   }, [filteredIssues]);
 
-  // Monthly reported and resolved issues.
   const monthlyData = useMemo(() => {
     const months = [];
 
@@ -256,7 +231,6 @@ const filteredIssues = useMemo(() => {
     return months;
   }, [filteredIssues]);
 
-  // Category chart data.
   const categoryData = useMemo(() => {
     const counts = {};
 
@@ -270,7 +244,6 @@ const filteredIssues = useMemo(() => {
       .sort((a, b) => b.value - a.value);
   }, [filteredIssues]);
 
-  // Status chart data.
   const statusData = [
     { name: "Pending Review", value: stats.pending },
     { name: "In Progress", value: stats.active },
@@ -278,7 +251,6 @@ const filteredIssues = useMemo(() => {
     { name: "Rejected", value: stats.rejected },
   ].filter((item) => item.value > 0);
 
-  // Export filtered issues to CSV.
   const exportCSV = () => {
     const columns = [
       "Issue Number",
@@ -326,13 +298,13 @@ const filteredIssues = useMemo(() => {
 
     URL.revokeObjectURL(url);
   };
+
   return (
     <div className="min-h-screen font-['Inter'] text-[#0d1c2e]">
       <Navbar />
 
       <main className="min-h-screen bg-[#f8f9ff] px-4 py-8 text-[#0d1c2e] sm:px-6 lg:px-10">
         <div className="mx-auto flex max-w-7xl flex-col gap-6">
-          {/* Page heading and filters */}
           <section className="flex flex-col justify-between gap-5 rounded-xl bg-white p-5 shadow-sm lg:flex-row lg:items-end lg:p-7">
             <div className="max-w-2xl">
               <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-900">
@@ -356,9 +328,7 @@ const filteredIssues = useMemo(() => {
               <select
                 aria-label="Time range"
                 value={timeRange}
-                onChange={(e) =>
-                  setTimeRange(Number(e.target.value))
-                }
+                onChange={(e) => setTimeRange(Number(e.target.value))}
                 className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-blue-800"
               >
                 {ranges.map((range) => (
@@ -371,9 +341,7 @@ const filteredIssues = useMemo(() => {
               <select
                 aria-label="Issue category"
                 value={categoryFilter}
-                onChange={(e) =>
-                  setCategoryFilter(e.target.value)
-                }
+                onChange={(e) => setCategoryFilter(e.target.value)}
                 className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-blue-800"
               >
                 <option value="All">All Categories</option>
@@ -405,14 +373,12 @@ const filteredIssues = useMemo(() => {
             </div>
           </section>
 
-          {/* Error message */}
           {error && (
             <section
               role="alert"
               className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800"
             >
               <span>{error}</span>
-
               <button
                 type="button"
                 onClick={handleRetry}
@@ -434,7 +400,6 @@ const filteredIssues = useMemo(() => {
             </div>
           ) : (
             <>
-              {/* KPI cards */}
               <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <MetricCard
                   label="Total Issues Reported"
@@ -469,7 +434,6 @@ const filteredIssues = useMemo(() => {
                 />
               </section>
 
-              {/* Secondary metrics */}
               <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 {[
                   {
@@ -519,188 +483,23 @@ const filteredIssues = useMemo(() => {
                 ))}
               </section>
 
-              {/* Charts */}
-              <section className="grid grid-cols-1 items-start gap-6 lg:grid-cols-7">
-                <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm lg:col-span-4 lg:p-6">
-                  <div className="mb-6">
-                    <h2 className="text-lg font-bold text-[#00236f]">
-                      Issue Volume &amp; Resolution
-                    </h2>
-                    <p className="mt-1 text-sm text-slate-500">
-                      Reported and resolved issues by month
-                    </p>
+              <Suspense
+                fallback={
+                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-7">
+                    <div className="h-96 animate-pulse rounded-xl bg-white lg:col-span-4" />
+                    <div className="h-96 animate-pulse rounded-xl bg-white lg:col-span-3" />
                   </div>
-
-                  <div className="h-72 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={monthlyData}
-                        margin={{
-                          top: 8,
-                          right: 8,
-                          left: -18,
-                          bottom: 0,
-                        }}
-                      >
-                        <CartesianGrid
-                          strokeDasharray="3 3"
-                          vertical={false}
-                          stroke="#e2e8f0"
-                        />
-                        <XAxis
-                          dataKey="month"
-                          tickLine={false}
-                          axisLine={false}
-                          tick={{
-                            fill: "#64748b",
-                            fontSize: 12,
-                          }}
-                        />
-                        <YAxis
-                          allowDecimals={false}
-                          tickLine={false}
-                          axisLine={false}
-                          tick={{
-                            fill: "#64748b",
-                            fontSize: 12,
-                          }}
-                        />
-                        <Tooltip />
-                        <Legend />
-                        <Bar
-                          dataKey="reported"
-                          name="Reported"
-                          fill="#b6c4ff"
-                          radius={[5, 5, 0, 0]}
-                        />
-                        <Bar
-                          dataKey="resolved"
-                          name="Resolved"
-                          fill="#006a61"
-                          radius={[5, 5, 0, 0]}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  <p className="mt-3 text-xs text-slate-500">
-                    Monthly chart shows the last six calendar months.
-                    The cards and category breakdown follow your
-                    selected filters.
-                  </p>
-                </div>
-
-                <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm lg:col-span-3 lg:p-6">
-                  <h2 className="text-lg font-bold text-[#00236f]">
-                    Issue Status Distribution
-                  </h2>
-
-                  <p className="mt-1 text-sm text-slate-500">
-                    Current status of filtered reports
-                  </p>
-
-                  <div className="h-64 w-full">
-                    {statusData.length ? (
-                      <ResponsiveContainer
-                        width="100%"
-                        height="100%"
-                      >
-                        <PieChart>
-                          <Pie
-                            data={statusData}
-                            dataKey="value"
-                            nameKey="name"
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={58}
-                            outerRadius={88}
-                            paddingAngle={3}
-                          >
-                            {statusData.map((entry, index) => (
-                              <Cell
-                                key={entry.name}
-                                fill={
-                                  COLORS[index % COLORS.length]
-                                }
-                              />
-                            ))}
-                          </Pie>
-                          <Tooltip />
-                          <Legend />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-sm text-slate-400">
-                        No issues found for this selection.
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </section>
-
-              {/* Category breakdown */}
-              <section className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm md:p-6">
-                <div className="mb-6">
-                  <h2 className="text-lg font-bold text-[#00236f]">
-                    Issue Categories Distribution
-                  </h2>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Report count and active workload for each category
-                  </p>
-                </div>
-
-                {categoryData.length ? (
-                  <div className="space-y-5">
-                    {categoryData.map((item, index) => {
-                      const percentage = stats.total
-                        ? (item.value / stats.total) * 100
-                        : 0;
-
-                      const activeCount = filteredIssues.filter(
-                        (issue) =>
-                          (issue.category || "Uncategorized") ===
-                            item.name &&
-                          issue.status !== "Resolved" &&
-                          issue.status !== "Rejected"
-                      ).length;
-
-                      return (
-                        <div key={item.name}>
-                          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                            <div>
-                              <p className="font-semibold text-slate-800">
-                                {item.name}
-                              </p>
-                              <p className="mt-1 text-xs text-slate-500">
-                                {item.value} total · {activeCount} active
-                              </p>
-                            </div>
-
-                            <span className="text-sm font-bold text-[#00236f]">
-                              {percentage.toFixed(1)}%
-                            </span>
-                          </div>
-
-                          <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
-                            <div
-                              className="h-full rounded-full transition-all"
-                              style={{
-                                width: `${percentage}%`,
-                                backgroundColor:
-                                  COLORS[index % COLORS.length],
-                              }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="py-8 text-center text-sm text-slate-500">
-                    No category data available for this selection.
-                  </p>
-                )}
-              </section>
+                }
+              >
+                <Charts
+                  monthlyData={monthlyData}
+                  statusData={statusData}
+                  categoryData={categoryData}
+                  filteredIssues={filteredIssues}
+                  stats={stats}
+                  colors={COLORS}
+                />
+              </Suspense>
             </>
           )}
         </div>
