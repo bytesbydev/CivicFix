@@ -83,7 +83,7 @@ const handleSeeMap = () => {
               <img
                 className="w-full h-full object-cover"
                 alt="A bright, modern isometric illustration of a clean city street"
-                src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1600&q=90"
+              src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1000&q=65"
               />
             </div>
           </div>
@@ -228,7 +228,7 @@ const handleSeeMap = () => {
               <img
                 className="w-full h-full object-cover"
                 alt="Modern civic engagement dashboard displayed on laptop and smartphone"
-                src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1800&q=90"
+           src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=65"
               />
             </div>
           </div>
